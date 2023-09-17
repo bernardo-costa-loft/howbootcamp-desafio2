@@ -45,7 +45,3 @@ def generate_fake_realty_sales_df(num_transactions: int, num_agents: int) -> pd.
         )
 
     return pd.DataFrame(fake_transaction_list)
-
-
-# monthly_sales_df = generate_fake_realty_sales_df(300, 10)
-# monthly_sales_df.to_csv('monthly_sales.csv', index=False)

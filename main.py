@@ -15,7 +15,7 @@ def generate_data(max_rows):
         num_agents
     )
 
-    print(df.info())
+    print(f"Generated {num_transactions} transactions with {num_agents} agents")
     
     return df
 
@@ -33,7 +33,7 @@ def send_df_to_s3(df, bucket_name):
         s3_filename=s3_filename
     )
 
-    print(s3_filename)
+    print(f"Uploaded {s3_filename}")
 
 
 if __name__ == "__main__":
