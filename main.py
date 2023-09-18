@@ -24,8 +24,8 @@ def send_df_to_s3(df, bucket_name):
     csv_buffer = BytesIO()
     df.to_csv(csv_buffer)
 
-    s3_path = "comissions2"
-    s3_filename = f"{s3_path}/sales_{datetime.now().strftime('%Y-%m-%d-%H%M%S')}.csv"
+    s3_path = "transactions"
+    s3_filename = f"{s3_path}/{datetime.now().strftime('%Y-%m-%d-%H%M%S')}.csv"
 
     s3 = s3_bucket(bucket_name)
     s3.upload(
@@ -38,4 +38,4 @@ def send_df_to_s3(df, bucket_name):
 
 if __name__ == "__main__":
     df = generate_data(50)
-    send_df_to_s3(df, "782642054006-raw")
+    send_df_to_s3(df, "raw-440cc93")
