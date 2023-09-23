@@ -4,7 +4,6 @@ version = "0.1.0"
 description = "Data Lake simplificado na AWS, da ingestão até a consulta"
 authors = ["Bernardo Costa <bemc@poli.ufrj.br>"]
 readme = "README.md"
-packages = [{include = "howbootcamp_desafio2"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"

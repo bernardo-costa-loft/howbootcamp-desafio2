@@ -1,6 +1,4 @@
 name: desafio2-infra
 runtime:
   name: python
-  options:
-    virtualenv: venv
 description: Data Lake infra for desafio2 project for How Bootacamp's Data Engineering AWS course
