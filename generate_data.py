@@ -1,6 +1,7 @@
 from datetime import datetime
 from io import BytesIO
 import random
+import subprocess
 
 from utils.fake_data import generate_fake_realty_sales_df
 from utils.data_intake import s3_bucket
@@ -36,6 +37,16 @@ def send_df_to_s3(df, bucket_name):
     print(f"Uploaded {s3_filename}")
 
 
+def get_pulumi_stack_output(stack_output_id: str):
+    return(subprocess
+      .run(
+          ["poetry","run","pulumi","stack","output",stack_output_id], 
+          capture_output=True
+        ).stdout.decode(encoding="utf-8")
+    )
+
+
 if __name__ == "__main__":
     df = generate_data(50)
-    send_df_to_s3(df, "raw-440cc93")
+    bucket_name = get_pulumi_stack_output("raw_bucket_name")
+    send_df_to_s3(df, bucket_name)
