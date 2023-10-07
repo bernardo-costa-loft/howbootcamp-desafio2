@@ -2,14 +2,33 @@
 
 import pulumi
 from pulumi_aws import s3, emr, iam
+import subprocess
+
+
+def get_pulumi_stack_output(stack_output_id: str):
+    return(subprocess
+      .run(
+          ["poetry","run","pulumi","stack","output",stack_output_id], 
+          capture_output=True
+        ).stdout.decode(encoding="utf-8")
+    )
+
 
 def create_data_lake_buckets():
     raw = s3.Bucket('raw')
     trusted = s3.Bucket('trusted')
     analytic = s3.Bucket('analytic')
+
+    raw_to_trusted = s3.BucketObject(
+        "raw_to_trusted.py",
+        bucket=raw.id,
+        source=pulumi.FileAsset("./scripts/raw_to_trusted.py")
+    )
+
     pulumi.export('raw_bucket_name', raw.id)
     pulumi.export('trusted_bucket_name', trusted.id)
     pulumi.export('analytic_bucket_name', analytic.id)
+
 
 def create_emr_spark_cluster():
 
@@ -57,7 +76,12 @@ def create_emr_spark_cluster():
             instance_type='c4.large'
         )
     )
+
+    # TODO add EMR step to run spark job
+    # TODO add EMR termination config
+
     pulumi.export('emr_cluser_id', cluster.id)
+
 
 def create_glue_crawler():
     pass
