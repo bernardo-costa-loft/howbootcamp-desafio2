@@ -13,7 +13,11 @@ faker = "^19.6.0"
 python-dotenv = "^1.0.0"
 pulumi = "^3.82.1"
 pulumi-aws = "^6.1.0"
+pyspark = "^3.5.0"
 
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.25.2"
 
 [build-system]
 requires = ["poetry-core"]
