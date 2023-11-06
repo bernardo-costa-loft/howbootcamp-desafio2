@@ -1,4 +1,5 @@
 
+from pyspark import SparkContext
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import udf, col
 from pyspark.sql.types import StringType
@@ -90,16 +91,28 @@ def load(df, destination_bucket: str):
 
 if __name__ == "__main__":
 
+    sc = SparkContext()
+    (
+        sc._jsc.hadoopConfiguration()
+        .set("fs.s3a.aws.credentials.provider", "com.amazonaws.auth.profile.ProfileCredentialsProvider")
+    )
+    
     spark = (
-        SparkSession
+        SparkSession(sc)
         .builder
         .appName("howbootcamp_desafio2")
         .getOrCreate()
     )
 
     origin_bucket_url = f"s3://raw-440cc93/transactions/"
-    destination_bucket_url = f"s3://trusted-659ca4e/transactions/"
+    destination_bucket_url = f"s3://trusted-a8fe5d9/transactions/"
 
+    print("Starting data extraction...")
     df = extract(spark, origin_bucket_url)
+    print("Data extraction done!")
+    print("Starting data transformation...")
     df_clean = transform(df)
+    print("Data transformation done!")
+    print("Started loading data...")
     load(df_clean, destination_bucket_url)
+    print("Data load done!")
