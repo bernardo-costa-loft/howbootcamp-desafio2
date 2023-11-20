@@ -25,17 +25,27 @@ def create_data_lake_buckets():
         source=pulumi.FileAsset("./scripts/raw_to_trusted.py")
     )
 
+    trusted_to_analytic = s3.BucketObject(
+        "trusted_to_analytic.py",
+        bucket=trusted.id,
+        source=pulumi.FileAsset("./scripts/trusted_to_analytic.py")
+    )
+
     pulumi.export('raw_bucket_name', raw.id)
     pulumi.export('trusted_bucket_name', trusted.id)
     pulumi.export('analytic_bucket_name', analytic.id)
     pulumi.export('raw_to_trusted_script_bucket', raw_to_trusted.bucket)
     pulumi.export('raw_to_trusted_script_name', raw_to_trusted.id)
+    pulumi.export('trusted_to_analytic_script_bucket', trusted_to_analytic.bucket)
+    pulumi.export('trusted_to_analytic_script_name', trusted_to_analytic.id)
 
     raw_to_trusted_output = pulumi.Output.from_input(raw_to_trusted)
+    trusted_to_analytic_output = pulumi.Output.from_input(trusted_to_analytic)
 
     return {
         "scripts": {
-            "raw_to_trusted": raw_to_trusted_output
+            "raw_to_trusted": raw_to_trusted_output,
+            "trusted_to_analytic": trusted_to_analytic_output,
         }
     }
 
@@ -48,6 +58,13 @@ def create_emr_spark_cluster(args):
                                    .apply(lambda x: f"s3://{x[0]}/{x[1]}")
     )
     raw_to_trusted_logs = raw_to_trusted.bucket.apply(lambda x: f's3://{x}/logs')
+
+    trusted_to_analytic = args["scripts"]["trusted_to_analytic"]
+    trusted_to_analytic_step_command = (pulumi.Output
+                                   .all(trusted_to_analytic.bucket, trusted_to_analytic.id)
+                                   .apply(lambda x: f"s3://{x[0]}/{x[1]}")
+    )
+    trusted_to_analytic_logs = trusted_to_analytic.bucket.apply(lambda x: f's3://{x}/logs')
 
     keypair = ec2.KeyPair(
         "how_bootcamp_emr_keypair",
@@ -173,6 +190,15 @@ def create_emr_spark_cluster(args):
             args=["sudo","-E","spark-submit","--deploy-mode","client","--master","yarn",raw_to_trusted_step_command],
         ),
     )
+
+    trusted_to_analytic_step = emr.ClusterStepArgs(
+        name="trusted_to_analytic",
+        action_on_failure="CONTINUE",
+        hadoop_jar_step=emr.ClusterStepHadoopJarStepArgs(
+            jar="command-runner.jar",
+            args=["sudo","-E","spark-submit","--deploy-mode","client","--master","yarn",trusted_to_analytic_step_command],
+        ),
+    )
     
     cluster = emr.Cluster(
         "HowBootcamp_EMR_Cluster_desafio2",
@@ -193,7 +219,10 @@ def create_emr_spark_cluster(args):
             instance_count=1,
             instance_type='r7g.xlarge'
         ),
-        steps=[raw_to_trusted_step],
+        steps=[
+            raw_to_trusted_step, 
+            trusted_to_analytic_step
+        ],
         auto_termination_policy=emr.ClusterAutoTerminationPolicyArgs(
             idle_timeout=180
         )
