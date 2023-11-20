@@ -1,7 +1,7 @@
 
 from pyspark import SparkContext
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import udf, col
+from pyspark.sql.functions import udf, col, input_file_name
 from pyspark.sql.types import StringType
 
 
@@ -56,6 +56,7 @@ def extract(spark, origin_bucket: str):
         .format("csv")
         .option("header", "true")
         .load(origin_bucket)
+        .withColumn("filepath", input_file_name())
     )
 
 
@@ -73,7 +74,7 @@ def transform(df):
     df_clean = df_clean.drop(*(phone_cols + name_cols))
 
     for c in df_clean.columns:
-        if "_clean" in c:
+        if "_applied_udf" in c:
             df_clean = df_clean.withColumnRenamed(c, c.replace("_applied_udf", ""))
 
     return df_clean
@@ -100,19 +101,23 @@ if __name__ == "__main__":
     spark = (
         SparkSession(sc)
         .builder
-        .appName("howbootcamp_desafio2")
+        .appName("howbootcamp_desafio2_raw_to_trusted")
         .getOrCreate()
     )
 
     origin_bucket_url = f"s3://raw-440cc93/transactions/"
+    # origin_bucket_url = "./../raw/"
     destination_bucket_url = f"s3://trusted-a8fe5d9/transactions/"
+    # destination_bucket_url = "./../trusted/"
 
     print("Starting data extraction...")
     df = extract(spark, origin_bucket_url)
     print("Data extraction done!")
+
     print("Starting data transformation...")
     df_clean = transform(df)
     print("Data transformation done!")
+
     print("Started loading data...")
     load(df_clean, destination_bucket_url)
     print("Data load done!")
