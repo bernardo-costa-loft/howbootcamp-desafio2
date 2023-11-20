@@ -33,7 +33,8 @@ def extract(spark, origin_bucket: str):
 def transform(df):
     df_clean = df.withColumn(
         "date", 
-        substring(split(df.filepath, "/").getItem(8), 1, 10).cast(DateType())
+        #substring(split(df.filepath, "/").getItem(8), 1, 10).cast(DateType()) # LOCAL filesystem
+        substring(split(df.filepath, "/").getItem(3), 1, 10).cast(DateType()) # S3 filesystem
     )
 
     df_clean.printSchema()
