@@ -7,7 +7,6 @@ from utils.fake_data import generate_fake_realty_sales_df
 from utils.data_intake import s3_bucket
 from utils.infra import get_pulumi_stack_output
 
-
 def generate_data(max_rows):
     num_transactions = random.randint(1,max_rows)
     num_agents = random.randint(1,num_transactions)
@@ -38,11 +37,8 @@ def send_df_to_s3(df, bucket_name):
     print(f"Uploaded {s3_filename}")
 
 
-
-
-
 if __name__ == "__main__":
-    df = generate_data(50)
-    # df.to_csv(f"./spark_input/{datetime.now().strftime('%Y-%m-%d-%H%M%S')}.csv")
-    bucket_name = get_pulumi_stack_output("raw_bucket_name")
-    send_df_to_s3(df, bucket_name)
+    df = generate_data(5000)
+    df.to_csv(f"./raw/{datetime.now().strftime('%Y-%m-%d-%H%M%S')}.csv")
+    # bucket_name = get_pulumi_stack_output("raw_bucket_name")
+    # send_df_to_s3(df, bucket_name)
